@@ -1,0 +1,31 @@
+name: Docker
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get debian version from Dockerfile
+        id: debian-version
+        run: |
+          DEBIAN_VERSION=$(cat Dockerfile | grep "FROM debian:" | sed -r "s/FROM debian:([0-9\.]+)(.*)/\1/g")
+          echo "DEBIAN_VERSION=$DEBIAN_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Echo
+        env:
+          DEBIAN_VERSION: ${{ steps.debian-version.outputs.DEBIAN_VERSION }}
+        run: echo ${{ env.DEBIAN_VERSION }}
+
